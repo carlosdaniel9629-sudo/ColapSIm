@@ -1,2 +1,2 @@
-# ColapSIm
+# ColapSim
 Collapse sim
