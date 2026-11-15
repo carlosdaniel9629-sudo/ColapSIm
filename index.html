@@ -186,6 +186,152 @@ function baixarTxt() {
   const b = new Blob([game.h.map(m => m.role === 'user' ? '> ' + m.content.split('AÇÃO: ').pop() : m.content).join('\n\n---\n\n')], { type: 'text/plain;charset=utf-8' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `diario_dia_${game.d}.txt`; a.click();
 }
+<script>
+const FICHAS = [
+  { n: "Davi, 25 anos", b: "Barman, habituado à noite, físico mediano, sem treino com armas.", t: "Cauteloso (faz menos barulho)", c: "Lúcia (mãe, 56 anos, calma, dor no joelho)", s: "Casa simples de periferia com quarto, sala, cozinha e quintal com portão de ferro. Mercado a 10 min a pé. Comida para 3 dias, garrafa 2L, rádio, lanterna, canivete e celular." },
+  { n: "Renata, 38 anos", b: "Técnica de enfermagem, sabe fazer curativos, exausta e com enxaqueca.", t: "Observador (ouve e nota detalhes)", c: "Theo (filho de 7 anos, assustado com barulhos e escuro)", s: "Apartamento térreo com grades nas janelas. Caixa d'água compartilhada. Arroz, feijão e enlatados para 6 dias, caixa de primeiros socorros, chave inglesa e celular." },
+  { n: "Marcos, 44 anos", b: "Eletricista autônomo, bom com improvisos e trancas, sobrepeso e pouco fôlego.", t: "Prático (improvisa, cansa rápido)", c: "Bento (cachorro vira-lata que late para passos na rua)", s: "Casa geminada em rua estreita, muro baixo na frente e laje com escada. Caixa de ferramentas, 2 galões de água, botijão pela metade e rádio portátil." }
+];
+
+let game = { p: {}, h: [], d: 1, hr: 7, min: 30 };
+
+// Injeta campo de chave API automaticamente no topo da ficha
+(function criarCampoChave() {
+  const setup = document.getElementById('setup-screen');
+  const div = document.createElement('div');
+  div.className = 'field';
+  div.innerHTML = '<label>Chave API (Groq gsk_... ou OpenRouter sk-or-...)</label><input type="password" id="f-key" placeholder="Cole sua chave gratuita aqui (fica salva no navegador)">';
+  setup.insertBefore(div, setup.children[3]);
+  const savedKey = localStorage.getItem('colapso_api_key');
+  if (savedKey) document.getElementById('f-key').value = savedKey;
+})();
+
+try {
+  const s = localStorage.getItem('caderno_v4');
+  if (s) { game = JSON.parse(s); abrirTelaDiario(); renderTudo(); }
+} catch (e) {}
+
+function gerarFicha() {
+  const f = FICHAS[Math.floor(Math.random() * FICHAS.length)];
+  document.getElementById('f-name').value = f.n;
+  document.getElementById('f-bio').value = f.b;
+  document.getElementById('f-trait').value = f.t;
+  document.getElementById('f-comp').value = f.c;
+  document.getElementById('f-scene').value = f.s;
+}
+
+function abrirTelaDiario() {
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('diary-screen').style.display = 'block';
+  atualizarRelogio();
+}
+
+function avancarTempo(m) {
+  game.min += m;
+  while (game.min >= 60) { game.min -= 60; game.hr++; }
+  while (game.hr >= 24) { game.hr -= 24; game.d++; }
+  atualizarRelogio();
+}
+
+function horaStr() { return `DIA ${game.d} — ${String(game.hr).padStart(2,'0')}:${String(game.min).padStart(2,'0')}`; }
+function atualizarRelogio() { document.getElementById('clock').innerText = horaStr(); }
+
+function sysPrompt() {
+  return `Motor narrativo realista e cru de colapso social com surto de infecção agressiva (estilo zumbis realistas, sem super-heróis). FICHA: ${game.p.n} | ${game.p.b} | Traço: ${game.p.t} | Acompanhante: ${game.p.c} | Cenário: ${game.p.s}. REGRAS: 1. Segunda pessoa ("Você...") como diário realista. Nunca use números de vida/dano ou listas de opções. 2. Protagonista comum: cansa rápido, treme sob adrenalina, sente sede e medo. 3. Fog of war e desinformação nas notícias. 4. Barulho atrai perigo; respeite o layout real da casa e reações humanas do acompanhante. 5. Considere o [DADO] oculto sem citar regras. 6. Escreva 2 a 3 parágrafos densos em português do Brasil.`;
+}
+
+async function chamarIA(prompt) {
+  const key = (document.getElementById('f-key')?.value || localStorage.getItem('colapso_api_key') || '').trim();
+  if (!key) throw new Error('Nenhuma chave API inserida.');
+  localStorage.setItem('colapso_api_key', key);
+
+  const isOpenRouter = key.startsWith('sk-or-');
+  const url = isOpenRouter ? 'https://openrouter.ai' : 'https://groq.com';
+  const model = isOpenRouter ? 'openrouter/free' : 'llama-3.1-8b-instant';
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+    body: JSON.stringify({
+      model: model,
+      messages: [{ role: 'system', content: sysPrompt() }, ...game.h, { role: 'user', content: prompt }],
+      temperature: 0.85,
+      max_tokens: 800
+    })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error?.message || 'Erro HTTP ' + res.status);
+  return data.choices[0].message.content;
+}
+
+async function iniciarJogo() {
+  document.getElementById('btn-start').disabled = true;
+  document.getElementById('setup-msg').innerText = 'Conectando à IA...';
+  game.p = {
+    n: document.getElementById('f-name').value || 'Davi, 25 anos',
+    b: document.getElementById('f-bio').value || 'Adulto comum.',
+    t: document.getElementById('f-trait').value,
+    c: document.getElementById('f-comp').value || 'Sozinho em casa',
+    s: document.getElementById('f-scene').value || 'Casa simples de bairro com portão de ferro.'
+  };
+  const ini = 'Inicie no Dia 1 às 07:30, antes do surto tomar o bairro. Mostre o despertar no quarto, luz e água funcionando, mas notícias vagas sobre casos estranhos em hospitais. Apresente o ambiente e o acompanhante.';
+  try {
+    const r = await chamarIA(ini);
+    game.h.push({ role: 'assistant', content: r });
+    salvar(); abrirTelaDiario(); addPagina('narrator', r, horaStr());
+    document.getElementById('status').innerText = 'IA conectada.';
+  } catch (e) {
+    document.getElementById('setup-msg').innerText = 'Erro: ' + e.message;
+    document.getElementById('btn-start').disabled = false;
+  }
+}
+
+async function enviarAcao() {
+  const inp = document.getElementById('act');
+  const txt = inp.value.trim();
+  if (!txt) return;
+  inp.value = '';
+  document.getElementById('btn-send').disabled = true;
+  document.getElementById('status').innerText = 'Processando...';
+  addPagina('player', txt, horaStr());
+  avancarTempo(Math.floor(Math.random() * 12) + 3);
+  const d = Math.floor(Math.random() * 100) + 1;
+  const p = `[DADO: ${d}/100] [${horaStr()}] AÇÃO: ${txt}`;
+  try {
+    const r = await chamarIA(p);
+    game.h.push({ role: 'user', content: p }, { role: 'assistant', content: r });
+    if (game.h.length > 36) game.h = game.h.slice(-36);
+    salvar(); addPagina('narrator', r, horaStr());
+    document.getElementById('status').innerText = 'IA ativa.';
+  } catch (e) {
+    addPagina('narrator', '[Erro de conexão: ' + e.message + ']', horaStr());
+    document.getElementById('status').innerText = 'Erro na IA.';
+  } finally {
+    document.getElementById('btn-send').disabled = false;
+    inp.focus();
+  }
+}
+
+function addPagina(role, txt, t) {
+  const box = document.getElementById('pages');
+  const div = document.createElement('div');
+  div.className = 'entry ' + role;
+  if (role === 'narrator') { const s = document.createElement('span'); s.className = 'tag'; s.innerText = t; div.appendChild(s); }
+  const c = document.createElement('div'); c.innerText = txt; div.appendChild(c);
+  box.appendChild(div); box.scrollTop = box.scrollHeight;
+}
+
+function renderTudo() {
+  document.getElementById('pages').innerHTML = '';
+  for (const item of game.h) addPagina(item.role === 'user' ? 'player' : 'narrator', item.role === 'user' ? item.content.split('AÇÃO: ').pop() : item.content, horaStr());
+}
+
+function salvar() { try { localStorage.setItem('caderno_v4', JSON.stringify(game)); } catch (e) {} }
+function novoJogo() { if (confirm('Apagar caderno atual?')) { localStorage.removeItem('caderno_v4'); location.reload(); } }
+function baixarTxt() {
+  const b = new Blob([game.h.map(m => m.role === 'user' ? '> ' + m.content.split('AÇÃO: ').pop() : m.content).join('\n\n---\n\n')], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `diario_dia_${game.d}.txt`; a.click();
+}
 </script>
 </body>
 </html>
