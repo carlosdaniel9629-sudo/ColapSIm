@@ -3,335 +3,152 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#161512">
-<title>Caderno de Registro — Colapso Civil</title>
+<title>Diário de Contingência</title>
 <style>
-  :root { --bg: #12110f; --paper: #1b1a16; --margin: #3d2420; --rule: #25231e; --ink: #dcd7c9; --dim: #8c8678; --acc: #9e4737; --bdr: #333029; }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--ink); font-family: Georgia, serif; line-height: 1.75; padding: 16px; display: flex; justify-content: center; }
-  .notebook { width: 100%; max-width: 720px; background: var(--paper); border: 1px solid var(--bdr); box-shadow: 0 12px 35px rgba(0,0,0,0.7); position: relative; padding: 30px 30px 30px 44px; }
-  .notebook::before { content: ''; position: absolute; top: 0; bottom: 0; left: 26px; width: 1px; background: var(--margin); }
-  h1 { font-size: 1.3rem; font-weight: normal; color: #ebe6d8; border-bottom: 1px solid var(--bdr); padding-bottom: 10px; margin-bottom: 12px; }
-  p.sub { font-size: 0.9rem; color: var(--dim); font-style: italic; margin-bottom: 18px; }
-  .field { margin-bottom: 14px; }
-  label { display: block; font-family: monospace; font-size: 0.75rem; text-transform: uppercase; color: var(--dim); margin-bottom: 5px; }
-  input, select, textarea { width: 100%; background: #13120f; border: 1px solid var(--bdr); color: var(--ink); padding: 9px 11px; font-family: Georgia, serif; font-size: 0.96rem; outline: none; }
-  textarea { resize: vertical; min-height: 64px; }
-  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  @media (max-width: 540px) { .row { grid-template-columns: 1fr; } }
-  button { background: var(--acc); color: #f5f2eb; border: none; padding: 11px 18px; font-family: monospace; font-size: 0.86rem; cursor: pointer; }
-  button:disabled { background: #38352e; cursor: not-allowed; }
-  .ghost { background: transparent; border: 1px solid var(--bdr); color: var(--dim); padding: 6px 11px; font-size: 0.76rem; }
-  .ghost:hover { border-color: var(--ink); color: var(--ink); }
-  #diary-screen { display: none; }
-  .top-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--bdr); padding-bottom: 10px; margin-bottom: 18px; font-family: monospace; font-size: 0.8rem; color: var(--dim); flex-wrap: wrap; gap: 8px; }
-  #pages { max-height: 60vh; overflow-y: auto; padding-right: 8px; margin-bottom: 18px; }
-  .entry { margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px dashed var(--rule); }
-  .entry.narrator { white-space: pre-wrap; text-align: justify; }
-  .entry.player { color: #a8a293; font-style: italic; padding-left: 12px; border-left: 2px solid var(--acc); border-bottom: none; margin-bottom: 12px; }
-  .tag { display: block; font-family: monospace; font-size: 0.72rem; color: var(--dim); margin-bottom: 5px; }
-  .foot { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; gap: 10px; }
-  #status { font-family: monospace; font-size: 0.76rem; color: var(--dim); }
+  body { background:#12110f; color:#dcd7c9; font-family:Georgia,serif; line-height:1.7; margin:0; padding:16px; display:flex; justify-content:center; }
+  .book { width:100%; max-width:680px; background:#1b1a16; border:1px solid #333029; border-left:4px solid #6e352c; padding:26px; }
+  h1 { font-size:1.25rem; font-weight:normal; border-bottom:1px solid #333029; padding-bottom:8px; margin:0 0 14px; color:#ebe6d8; }
+  label { display:block; font:11px monospace; text-transform:uppercase; color:#8c8678; margin:12px 0 4px; }
+  input, textarea { width:100%; box-sizing:border-box; background:#13120f; border:1px solid #333029; color:#dcd7c9; padding:9px; font:15px Georgia,serif; }
+  textarea { min-height:64px; resize:vertical; }
+  button { background:#9e4737; color:#fff; border:none; padding:10px 18px; font:13px monospace; cursor:pointer; margin-top:12px; }
+  button:disabled { background:#38352e; }
+  .ghost { background:transparent; border:1px solid #333029; color:#8c8678; padding:6px 10px; font-size:11px; margin:0; }
+  .top { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #333029; padding-bottom:8px; margin-bottom:16px; font:12px monospace; color:#8c8678; }
+  #log { max-height:58vh; overflow-y:auto; margin-bottom:16px; }
+  .msg { margin-bottom:18px; padding-bottom:12px; border-bottom:1px dashed #292722; white-space:pre-wrap; text-align:justify; }
+  .you { color:#9c9688; font-style:italic; border-left:2px solid #9e4737; padding-left:10px; border-bottom:none; }
+  .time { display:block; font:11px monospace; color:#8c8678; margin-bottom:4px; }
+  #err { font:12px monospace; color:#e06c53; margin-top:10px; }
 </style>
 </head>
 <body>
-<div class="notebook">
-  <div id="setup-screen">
+<div class="book">
+  <div id="tela1">
     <h1>CADERNO DE CAMPO — REGISTRO INDIVIDUAL</h1>
-    <p class="sub">A história começa antes do colapso total. Preencha com realismo ou gere uma ficha aleatória.</p>
-    <div style="margin-bottom:18px;"><button type="button" class="ghost" onclick="gerarFicha()">🎲 GERAR FICHA ALEATÓRIA</button></div>
-    <div class="row">
-      <div class="field"><label>Nome e Idade</label><input type="text" id="f-name" placeholder="Ex: Davi, 25 anos"></div>
-      <div class="field"><label>Ocupação e Físico Real</label><input type="text" id="f-bio" placeholder="Ex: Barman, físico mediano, miopia leve"></div>
-    </div>
-    <div class="row">
-      <div class="field"><label>Traço Comportamental</label>
-        <select id="f-trait">
-          <option value="Cauteloso (faz menos barulho)">Cauteloso (faz menos barulho)</option>
-          <option value="Observador (ouve e nota detalhes)">Observador (ouve e nota detalhes)</option>
-          <option value="Prático (improvisa, mas cansa rápido)">Prático (improvisa, cansa rápido)</option>
-          <option value="Ansioso (alerta alto, fadiga rápida)">Ansioso (alerta alto, fadiga rápida)</option>
-        </select>
-      </div>
-      <div class="field"><label>Acompanhante na Casa</label><input type="text" id="f-comp" placeholder="Ex: Lúcia (mãe, 56 anos)"></div>
-    </div>
-    <div class="field"><label>Cenário Doméstico, Bairro e Itens</label><textarea id="f-scene" placeholder="Ex: Casa simples de periferia, quarto, sala, cozinha e quintal com portão de ferro. Mercado a 10 min. Água, comida para 3 dias, lanterna, canivete e celular."></textarea></div>
-    <button id="btn-start" type="button" onclick="iniciarJogo()">ABRIR DIÁRIO (DIA 1)</button>
-    <div id="setup-msg" style="margin-top:8px;font-family:monospace;font-size:0.78rem;color:#c96553;"></div>
+    <button type="button" class="ghost" onclick="aleatorio()">🎲 GERAR FICHA ALEATÓRIA</button>
+    <label>Chave API (Groq gsk_... ou OpenRouter sk-or-...)</label>
+    <input type="password" id="k" placeholder="Cole sua chave aqui">
+    <label>Indivíduo (Nome, Idade, Físico e Traço)</label>
+    <input type="text" id="p1" placeholder="Ex: Davi, 25 anos, barman, cauteloso, sem preparo militar">
+    <label>Acompanhante na Residência</label>
+    <input type="text" id="p2" placeholder="Ex: Lúcia (mãe, 56 anos, dor no joelho)">
+    <label>Casa, Bairro e Suprimentos Reais</label>
+    <textarea id="p3" placeholder="Ex: Casa simples de periferia, portão de ferro, mercado a 10 min. Água, comida para 3 dias, lanterna, canivete e celular."></textarea>
+    <button type="button" id="b1" onclick="iniciar()">ABRIR DIÁRIO (DIA 1)</button>
+    <div id="err"></div>
   </div>
-  <div id="diary-screen">
-    <div class="top-bar">
-      <span id="clock">DIA 1 — 07:30</span>
-      <div><button type="button" class="ghost" onclick="baixarTxt()">SALVAR .TXT</button> <button type="button" class="ghost" onclick="novoJogo()">NOVO DIÁRIO</button></div>
+  <div id="tela2" style="display:none;">
+    <div class="top">
+      <span id="relogio">DIA 1 — 07:30</span>
+      <div><button type="button" class="ghost" onclick="baixar()">SALVAR .TXT</button> <button type="button" class="ghost" onclick="resetar()">NOVO</button></div>
     </div>
-    <div id="pages"></div>
-    <div>
-      <textarea id="act" placeholder="Escreva sua ação em prosa natural..." style="min-height:74px;"></textarea>
-      <div class="foot"><span id="status">Pronto.</span><button id="btn-send" type="button" onclick="enviarAcao()">ANOTAR AÇÃO</button></div>
+    <div id="log"></div>
+    <textarea id="acao" placeholder="Escreva o que você faz, verifica ou diz em prosa natural..."></textarea>
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <span id="st" style="font:12px monospace;color:#8c8678;">Pronto.</span>
+      <button type="button" id="b2" onclick="agir()">ANOTAR AÇÃO</button>
     </div>
   </div>
 </div>
 <script>
-const FICHAS = [
-  { n: "Davi, 25 anos", b: "Barman, habituado à noite, físico mediano, sem treino com armas.", t: "Cauteloso (faz menos barulho)", c: "Lúcia (mãe, 56 anos, calma, dor no joelho)", s: "Casa simples de periferia com quarto, sala, cozinha e quintal com portão de ferro. Mercado a 10 min a pé. Comida para 3 dias, garrafa 2L, rádio, lanterna, canivete e celular." },
-  { n: "Renata, 38 anos", b: "Técnica de enfermagem, sabe fazer curativos, exausta e com enxaqueca.", t: "Observador (ouve e nota detalhes)", c: "Theo (filho de 7 anos, assustado com barulhos e escuro)", s: "Apartamento térreo com grades nas janelas. Caixa d'água compartilhada. Arroz, feijão e enlatados para 6 dias, caixa de primeiros socorros, chave inglesa e celular." },
-  { n: "Marcos, 44 anos", b: "Eletricista autônomo, bom com improvisos e trancas, sobrepeso e pouco fôlego.", t: "Prático (improvisa, cansa rápido)", c: "Bento (cachorro vira-lata que late para passos na rua)", s: "Casa geminada em rua estreita, muro baixo na frente e laje com escada. Caixa de ferramentas, 2 galões de água, botijão pela metade e rádio portátil." }
+const PRESETS = [
+  { p1:"Davi, 25 anos, barman, físico mediano, cauteloso", p2:"Lúcia (mãe, 56 anos, calma, mobilidade reduzida)", p3:"Casa simples de periferia com quarto, sala, cozinha e quintal murado com portão de ferro. Comida para 3 dias, garrafa 2L, lanterna, canivete e celular." },
+  { p1:"Renata, 38 anos, técnica de enfermagem, exausta, observadora", p2:"Theo (filho de 7 anos, assustado com barulhos)", p3:"Apartamento térreo com grades nas janelas. Arroz e enlatados para 6 dias, caixa de primeiros socorros, chave inglesa e celular." },
+  { p1:"Marcos, 44 anos, eletricista, sobrepeso, prático", p2:"Bento (cachorro vira-lata que late para passos na rua)", p3:"Casa geminada em rua estreita, muro baixo e laje. Caixa de ferramentas, 2 galões de água, botijão pela metade e rádio portátil." }
 ];
-let game = { p: {}, h: [], d: 1, hr: 7, min: 30 };
+let g = { sys:"", h:[], d:1, hr:7, min:30 };
 try {
-  const s = localStorage.getItem('caderno_v3');
-  if (s) { game = JSON.parse(s); abrirTelaDiario(); renderTudo(); }
-} catch (e) {}
-function gerarFicha() {
-  const f = FICHAS.slice(Math.floor(Math.random() * FICHAS.length)).shift();
-  document.getElementById('f-name').value = f.n;
-  document.getElementById('f-bio').value = f.b;
-  document.getElementById('f-trait').value = f.t;
-  document.getElementById('f-comp').value = f.c;
-  document.getElementById('f-scene').value = f.s;
+  const sk = localStorage.getItem('k_colapso'); if (sk) document.getElementById('k').value = sk;
+  const sv = localStorage.getItem('g_colapso'); if (sv) { g = JSON.parse(sv); mostrarDiario(); desenharTudo(); }
+} catch(e) {}
+
+function aleatorio() {
+  const i = Math.floor(Math.random() * PRESETS.length);
+  const f = PRESETS.slice(i, i + 1).shift();
+  document.getElementById('p1').value = f.p1;
+  document.getElementById('p2').value = f.p2;
+  document.getElementById('p3').value = f.p3;
 }
-function abrirTelaDiario() {
-  document.getElementById('setup-screen').style.display = 'none';
-  document.getElementById('diary-screen').style.display = 'block';
-  atualizarRelogio();
+function hora() { return `DIA ${g.d} — ${String(g.hr).padStart(2,'0')}:${String(g.min).padStart(2,'0')}`; }
+function tempo(m) {
+  g.min += m;
+  while (g.min >= 60) { g.min -= 60; g.hr++; }
+  while (g.hr >= 24) { g.hr -= 24; g.d++; }
+  document.getElementById('relogio').innerText = hora();
 }
-function avancarTempo(m) {
-  game.min += m;
-  while (game.min >= 60) { game.min -= 60; game.hr++; }
-  while (game.hr >= 24) { game.hr -= 24; game.d++; }
-  atualizarRelogio();
+function mostrarDiario() {
+  document.getElementById('tela1').style.display = 'none';
+  document.getElementById('tela2').style.display = 'block';
+  document.getElementById('relogio').innerText = hora();
 }
-function horaStr() { return `DIA ${game.d} — ${String(game.hr).padStart(2,'0')}:${String(game.min).padStart(2,'0')}`; }
-function atualizarRelogio() { document.getElementById('clock').innerText = horaStr(); }
-function sysPrompt() {
-  return `Motor narrativo realista e cru de colapso social com surto de infecção agressiva (estilo zumbis realistas, sem super-heróis). FICHA: ${game.p.n} | ${game.p.b} | Traço: ${game.p.t} | Acompanhante: ${game.p.c} | Cenário: ${game.p.s}. REGRAS: 1. Segunda pessoa ("Você...") como diário realista. Nunca use números de vida/dano ou listas de opções. 2. Protagonista comum: cansa rápido, treme sob adrenalina, sente sede e medo. 3. Fog of war e desinformação nas notícias. 4. Barulho atrai perigo; respeite o layout real da casa e reações humanas do acompanhante. 5. Considere o [DADO] oculto sem citar regras. 6. Escreva 2 a 3 parágrafos densos em português do Brasil.`;
-}
-function fallbackOffline(txt) {
-  const t = txt.toLowerCase();
-  if (t.includes('olhar') || t.includes('verificar') || t.includes('procurar')) return 'Você observa o ambiente com cuidado, checando trancas, saídas e objetos à vista. Lá fora, passos irregulares ecoam na calçada antes de silenciar.';
-  if (t.includes('falar') || t.includes('conversar')) return `${game.p.c.split('(').shift().trim()} fala baixo, com tensão na voz: "Não faz barulho desnecessário. Vamos garantir água e trancar tudo antes de decidir qualquer saída."`;
-  if (t.includes('ouvir') || t.includes('escutar')) return 'Você prende a respiração para escutar. Ao longe, o som de uma freada brusca e vozes alteradas corta o silêncio do bairro.';
-  return 'Você age com cautela dentro da residência, lidando com a tensão crescente enquanto o tempo avança e as informações de fora permanecem incertas.';
-}
-async function chamarIA(prompt) {
-  const res = await fetch('/api/jogar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt, history: game.h, systemPrompt: sysPrompt() }) });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Erro API');
-  return data.reply;
-}
-async function iniciarJogo() {
-  document.getElementById('btn-start').disabled = true;
-  document.getElementById('setup-msg').innerText = 'Abrindo diário...';
-  game.p = {
-    n: document.getElementById('f-name').value || 'Davi, 25 anos',
-    b: document.getElementById('f-bio').value || 'Adulto comum.',
-    t: document.getElementById('f-trait').value,
-    c: document.getElementById('f-comp').value || 'Sozinho em casa',
-    s: document.getElementById('f-scene').value || 'Casa simples de bairro com portão de ferro.'
-  };
-  const ini = 'Inicie no Dia 1 às 07:30, antes do surto tomar o bairro. Mostre o despertar no quarto, luz e água funcionando, mas notícias vagas sobre casos estranhos em hospitais. Apresente o ambiente e o acompanhante.';
-  try {
-    const r = await chamarIA(ini);
-    game.h.push({ role: 'assistant', content: r });
-    salvar(); abrirTelaDiario(); addPagina('narrator', r, horaStr());
-  } catch (e) {
-    const fb = `${game.p.n}. ${game.p.s} Com você: ${game.p.c}.\n\nManhã comum: luz e torneiras funcionam, enquanto o rádio menciona superlotação estranha em hospitais da região, sem alerta oficial. Você está no quarto com a cortina fechada.`;
-    game.h.push({ role: 'assistant', content: fb });
-    salvar(); abrirTelaDiario(); addPagina('narrator', fb, horaStr());
-    document.getElementById('status').innerText = 'Offline: ' + e.message;
+async function ia(prompt) {
+  const key = document.getElementById('k').value.trim() || localStorage.getItem('k_colapso');
+  if (!key) throw new Error('Cole sua chave API primeiro.');
+  localStorage.setItem('k_colapso', key);
+  const isOR = key.startsWith('sk-or-');
+  let url = 'https://openrouter.ai';
+  let model = 'openrouter/free';
+  if (!isOR) {
+    url = 'https://groq.com';
+    const mr = await fetch('https://groq.com', { headers:{ 'Authorization':'Bearer '+key } });
+    const md = await mr.json();
+    if (!mr.ok) throw new Error(md.error?.message || 'Chave Groq inválida');
+    const validos = (md.data || []).map(x => x.id).filter(id => !id.includes('whisper') && !id.includes('guard') && !id.includes('tts') && !id.includes('orpheus') && !id.includes('3.3'));
+    model = validos.find(id => id.includes('gpt-oss') || id.includes('qwen') || id.includes('llama-4') || id.includes('8b-instant')) || validos.shift();
   }
-}
-async function enviarAcao() {
-  const inp = document.getElementById('act');
-  const txt = inp.value.trim();
-  if (!txt) return;
-  inp.value = '';
-  document.getElementById('btn-send').disabled = true;
-  document.getElementById('status').innerText = 'Processando...';
-  addPagina('player', txt, horaStr());
-  avancarTempo(Math.floor(Math.random() * 12) + 3);
-  const d = Math.floor(Math.random() * 100) + 1;
-  const p = `[DADO: ${d}/100] [${horaStr()}] AÇÃO: ${txt}`;
-  try {
-    const r = await chamarIA(p);
-    game.h.push({ role: 'user', content: p }, { role: 'assistant', content: r });
-    if (game.h.length > 36) game.h = game.h.slice(-36);
-    salvar(); addPagina('narrator', r, horaStr());
-    document.getElementById('status').innerText = 'IA ativa.';
-  } catch (e) {
-    const fb = fallbackOffline(txt);
-    game.h.push({ role: 'user', content: p }, { role: 'assistant', content: fb });
-    salvar(); addPagina('narrator', fb, horaStr());
-    document.getElementById('status').innerText = 'Fallback offline.';
-  } finally {
-    document.getElementById('btn-send').disabled = false;
-    inp.focus();
-  }
-}
-function addPagina(role, txt, t) {
-  const box = document.getElementById('pages');
-  const div = document.createElement('div');
-  div.className = 'entry ' + role;
-  if (role === 'narrator') { const s = document.createElement('span'); s.className = 'tag'; s.innerText = t; div.appendChild(s); }
-  const c = document.createElement('div'); c.innerText = txt; div.appendChild(c);
-  box.appendChild(div); box.scrollTop = box.scrollHeight;
-}
-function renderTudo() {
-  document.getElementById('pages').innerHTML = '';
-  for (const item of game.h) addPagina(item.role === 'user' ? 'player' : 'narrator', item.role === 'user' ? item.content.split('AÇÃO: ').pop() : item.content, horaStr());
-}
-function salvar() { try { localStorage.setItem('caderno_v3', JSON.stringify(game)); } catch (e) {} }
-function novoJogo() { if (confirm('Apagar caderno atual?')) { localStorage.removeItem('caderno_v3'); location.reload(); } }
-function baixarTxt() {
-  const b = new Blob([game.h.map(m => m.role === 'user' ? '> ' + m.content.split('AÇÃO: ').pop() : m.content).join('\n\n---\n\n')], { type: 'text/plain;charset=utf-8' });
-  const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `diario_dia_${game.d}.txt`; a.click();
-}
-<script>
-const FICHAS = [
-  { n: "Davi, 25 anos", b: "Barman, habituado à noite, físico mediano, sem treino com armas.", t: "Cauteloso (faz menos barulho)", c: "Lúcia (mãe, 56 anos, calma, dor no joelho)", s: "Casa simples de periferia com quarto, sala, cozinha e quintal com portão de ferro. Mercado a 10 min a pé. Comida para 3 dias, garrafa 2L, rádio, lanterna, canivete e celular." },
-  { n: "Renata, 38 anos", b: "Técnica de enfermagem, sabe fazer curativos, exausta e com enxaqueca.", t: "Observador (ouve e nota detalhes)", c: "Theo (filho de 7 anos, assustado com barulhos e escuro)", s: "Apartamento térreo com grades nas janelas. Caixa d'água compartilhada. Arroz, feijão e enlatados para 6 dias, caixa de primeiros socorros, chave inglesa e celular." },
-  { n: "Marcos, 44 anos", b: "Eletricista autônomo, bom com improvisos e trancas, sobrepeso e pouco fôlego.", t: "Prático (improvisa, cansa rápido)", c: "Bento (cachorro vira-lata que late para passos na rua)", s: "Casa geminada em rua estreita, muro baixo na frente e laje com escada. Caixa de ferramentas, 2 galões de água, botijão pela metade e rádio portátil." }
-];
-
-let game = { p: {}, h: [], d: 1, hr: 7, min: 30 };
-
-// Injeta campo de chave API automaticamente no topo da ficha
-(function criarCampoChave() {
-  const setup = document.getElementById('setup-screen');
-  const div = document.createElement('div');
-  div.className = 'field';
-  div.innerHTML = '<label>Chave API (Groq gsk_... ou OpenRouter sk-or-...)</label><input type="password" id="f-key" placeholder="Cole sua chave gratuita aqui (fica salva no navegador)">';
-  setup.insertBefore(div, setup.children[3]);
-  const savedKey = localStorage.getItem('colapso_api_key');
-  if (savedKey) document.getElementById('f-key').value = savedKey;
-})();
-
-try {
-  const s = localStorage.getItem('caderno_v4');
-  if (s) { game = JSON.parse(s); abrirTelaDiario(); renderTudo(); }
-} catch (e) {}
-
-function gerarFicha() {
-  const f = FICHAS[Math.floor(Math.random() * FICHAS.length)];
-  document.getElementById('f-name').value = f.n;
-  document.getElementById('f-bio').value = f.b;
-  document.getElementById('f-trait').value = f.t;
-  document.getElementById('f-comp').value = f.c;
-  document.getElementById('f-scene').value = f.s;
-}
-
-function abrirTelaDiario() {
-  document.getElementById('setup-screen').style.display = 'none';
-  document.getElementById('diary-screen').style.display = 'block';
-  atualizarRelogio();
-}
-
-function avancarTempo(m) {
-  game.min += m;
-  while (game.min >= 60) { game.min -= 60; game.hr++; }
-  while (game.hr >= 24) { game.hr -= 24; game.d++; }
-  atualizarRelogio();
-}
-
-function horaStr() { return `DIA ${game.d} — ${String(game.hr).padStart(2,'0')}:${String(game.min).padStart(2,'0')}`; }
-function atualizarRelogio() { document.getElementById('clock').innerText = horaStr(); }
-
-function sysPrompt() {
-  return `Motor narrativo realista e cru de colapso social com surto de infecção agressiva (estilo zumbis realistas, sem super-heróis). FICHA: ${game.p.n} | ${game.p.b} | Traço: ${game.p.t} | Acompanhante: ${game.p.c} | Cenário: ${game.p.s}. REGRAS: 1. Segunda pessoa ("Você...") como diário realista. Nunca use números de vida/dano ou listas de opções. 2. Protagonista comum: cansa rápido, treme sob adrenalina, sente sede e medo. 3. Fog of war e desinformação nas notícias. 4. Barulho atrai perigo; respeite o layout real da casa e reações humanas do acompanhante. 5. Considere o [DADO] oculto sem citar regras. 6. Escreva 2 a 3 parágrafos densos em português do Brasil.`;
-}
-
-async function chamarIA(prompt) {
-  const key = (document.getElementById('f-key')?.value || localStorage.getItem('colapso_api_key') || '').trim();
-  if (!key) throw new Error('Nenhuma chave API inserida.');
-  localStorage.setItem('colapso_api_key', key);
-
-  const isOpenRouter = key.startsWith('sk-or-');
-  const url = isOpenRouter ? 'https://openrouter.ai' : 'https://groq.com';
-  const model = isOpenRouter ? 'openrouter/free' : 'llama-3.1-8b-instant';
-
   const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-    body: JSON.stringify({
-      model: model,
-      messages: [{ role: 'system', content: sysPrompt() }, ...game.h, { role: 'user', content: prompt }],
-      temperature: 0.85,
-      max_tokens: 800
-    })
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+key },
+    body: JSON.stringify({ model, messages:[{ role:'system', content:g.sys }, ...g.h, { role:'user', content:prompt }], temperature:0.85, max_tokens:750 })
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error?.message || 'Erro HTTP ' + res.status);
-  return data.choices[0].message.content;
+  if (!res.ok) throw new Error(data.error?.message || 'Erro HTTP '+res.status);
+  return (data.choices || []).slice(0, 1).shift().message.content;
 }
-
-async function iniciarJogo() {
-  document.getElementById('btn-start').disabled = true;
-  document.getElementById('setup-msg').innerText = 'Conectando à IA...';
-  game.p = {
-    n: document.getElementById('f-name').value || 'Davi, 25 anos',
-    b: document.getElementById('f-bio').value || 'Adulto comum.',
-    t: document.getElementById('f-trait').value,
-    c: document.getElementById('f-comp').value || 'Sozinho em casa',
-    s: document.getElementById('f-scene').value || 'Casa simples de bairro com portão de ferro.'
-  };
-  const ini = 'Inicie no Dia 1 às 07:30, antes do surto tomar o bairro. Mostre o despertar no quarto, luz e água funcionando, mas notícias vagas sobre casos estranhos em hospitais. Apresente o ambiente e o acompanhante.';
+async function iniciar() {
+  const b = document.getElementById('b1'), er = document.getElementById('err');
+  b.disabled = true; er.innerText = 'Conectando...';
+  g.sys = `Narrador realista e cru de colapso social com surto de infecção agressiva (zumbis realistas, sem heróis). Protagonista: ${document.getElementById('p1').value||'Comum'}. Acompanhante: ${document.getElementById('p2').value||'Sozinho'}. Cenário/Itens: ${document.getElementById('p3').value||'Casa simples'}. Regras: 1. Segunda pessoa ("Você...") como diário. Sem números de vida/dano ou listas de opções. 2. Protagonista cansa rápido, treme sob adrenalina, sente sede e medo. 3. Fog of war e desinformação nas notícias. 4. Barulho atrai perigo; respeite a casa e reações humanas do acompanhante. 5. Considere [DADO] oculto sem citar regras. 6. Escreva 2 a 3 parágrafos densos em português do Brasil.`;
   try {
-    const r = await chamarIA(ini);
-    game.h.push({ role: 'assistant', content: r });
-    salvar(); abrirTelaDiario(); addPagina('narrator', r, horaStr());
-    document.getElementById('status').innerText = 'IA conectada.';
-  } catch (e) {
-    document.getElementById('setup-msg').innerText = 'Erro: ' + e.message;
-    document.getElementById('btn-start').disabled = false;
-  }
+    const r = await ia('Inicie no Dia 1 às 07:30, antes do surto tomar o bairro. Mostre o despertar no quarto, luz e água funcionando, mas notícias vagas sobre casos estranhos em hospitais. Apresente a casa e o acompanhante.');
+    g.h.push({ role:'assistant', content:r });
+    localStorage.setItem('g_colapso', JSON.stringify(g));
+    mostrarDiario(); add('narrator', r, hora());
+  } catch(e) { er.innerText = 'Erro: ' + e.message; b.disabled = false; }
 }
-
-async function enviarAcao() {
-  const inp = document.getElementById('act');
-  const txt = inp.value.trim();
+async function agir() {
+  const inp = document.getElementById('acao'), txt = inp.value.trim();
   if (!txt) return;
   inp.value = '';
-  document.getElementById('btn-send').disabled = true;
-  document.getElementById('status').innerText = 'Processando...';
-  addPagina('player', txt, horaStr());
-  avancarTempo(Math.floor(Math.random() * 12) + 3);
+  const b = document.getElementById('b2'), st = document.getElementById('st');
+  b.disabled = true; st.innerText = 'Processando...';
+  add('you', txt, hora());
+  tempo(Math.floor(Math.random() * 12) + 3);
   const d = Math.floor(Math.random() * 100) + 1;
-  const p = `[DADO: ${d}/100] [${horaStr()}] AÇÃO: ${txt}`;
+  const p = `[DADO:${d}/100] [${hora()}] AÇÃO: ${txt}`;
   try {
-    const r = await chamarIA(p);
-    game.h.push({ role: 'user', content: p }, { role: 'assistant', content: r });
-    if (game.h.length > 36) game.h = game.h.slice(-36);
-    salvar(); addPagina('narrator', r, horaStr());
-    document.getElementById('status').innerText = 'IA ativa.';
-  } catch (e) {
-    addPagina('narrator', '[Erro de conexão: ' + e.message + ']', horaStr());
-    document.getElementById('status').innerText = 'Erro na IA.';
-  } finally {
-    document.getElementById('btn-send').disabled = false;
-    inp.focus();
-  }
+    const r = await ia(p);
+    g.h.push({ role:'user', content:p }, { role:'assistant', content:r });
+    if (g.h.length > 30) g.h = g.h.slice(-30);
+    localStorage.setItem('g_colapso', JSON.stringify(g));
+    add('narrator', r, hora()); st.innerText = 'Pronto.';
+  } catch(e) { add('narrator', '[Erro: '+e.message+']', hora()); st.innerText = 'Falha na IA.'; }
+  b.disabled = false; inp.focus();
 }
-
-function addPagina(role, txt, t) {
-  const box = document.getElementById('pages');
-  const div = document.createElement('div');
-  div.className = 'entry ' + role;
-  if (role === 'narrator') { const s = document.createElement('span'); s.className = 'tag'; s.innerText = t; div.appendChild(s); }
+function add(cls, txt, t) {
+  const l = document.getElementById('log'), div = document.createElement('div');
+  div.className = 'msg ' + cls;
+  if (cls === 'narrator') { const s = document.createElement('span'); s.className = 'time'; s.innerText = t; div.appendChild(s); }
   const c = document.createElement('div'); c.innerText = txt; div.appendChild(c);
-  box.appendChild(div); box.scrollTop = box.scrollHeight;
+  l.appendChild(div); l.scrollTop = l.scrollHeight;
 }
-
-function renderTudo() {
-  document.getElementById('pages').innerHTML = '';
-  for (const item of game.h) addPagina(item.role === 'user' ? 'player' : 'narrator', item.role === 'user' ? item.content.split('AÇÃO: ').pop() : item.content, horaStr());
+function desenharTudo() {
+  document.getElementById('log').innerHTML = '';
+  g.h.forEach(m => add(m.role==='user'?'you':'narrator', m.role==='user'?m.content.split('AÇÃO: ').pop():m.content, hora()));
 }
-
-function salvar() { try { localStorage.setItem('caderno_v4', JSON.stringify(game)); } catch (e) {} }
-function novoJogo() { if (confirm('Apagar caderno atual?')) { localStorage.removeItem('caderno_v4'); location.reload(); } }
-function baixarTxt() {
-  const b = new Blob([game.h.map(m => m.role === 'user' ? '> ' + m.content.split('AÇÃO: ').pop() : m.content).join('\n\n---\n\n')], { type: 'text/plain;charset=utf-8' });
-  const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `diario_dia_${game.d}.txt`; a.click();
+function resetar() { if (confirm('Apagar diário?')) { localStorage.removeItem('g_colapso'); location.reload(); } }
+function baixar() {
+  const b = new Blob([g.h.map(m => m.role==='user'?'> '+m.content.split('AÇÃO: ').pop():m.content).join('\n\n---\n\n')], {type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = diario_dia_${g.d}.txt; a.click();
 }
-</script>
-</body>
-</html>
